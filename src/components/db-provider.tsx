@@ -6,17 +6,18 @@ type DBContext = {
   signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
-  addExpense: (item: Omit<Expense, 'complete'>) => void;
+  addExpense: (item: Omit<Expense, 'complete' | 'type'>) => void;
   updateExpense: (itemId: string, item: Partial<Item>) => void;
   deleteExpense: (itemId: string) => void;
   user?: UserResult;
   items?: Item[];
 };
 
-type Expense = {
+export type Expense = {
   name: string;
   amount: number;
   complete: boolean;
+  type: 'expense';
 };
 
 const DB_NAME = 'billa';
@@ -75,10 +76,10 @@ const DBProvider: FC = ({ children }) => {
     try {
       userbase.insertItem({
         databaseName: DB_NAME,
-        item: { ...item, complete: false },
+        item: { ...item, type: 'expense', complete: false },
       });
     } catch (error) {
-      console.error(error);
+      throw Error(error);
     }
   };
 
@@ -86,7 +87,7 @@ const DBProvider: FC = ({ children }) => {
     try {
       userbase.updateItem({ databaseName: DB_NAME, itemId, item });
     } catch (error) {
-      console.error(error);
+      throw Error(error);
     }
   };
 
@@ -94,7 +95,7 @@ const DBProvider: FC = ({ children }) => {
     try {
       userbase.deleteItem({ databaseName: DB_NAME, itemId });
     } catch (error) {
-      console.error(error);
+      throw Error(error);
     }
   };
 
@@ -107,12 +108,10 @@ const DBProvider: FC = ({ children }) => {
   useEffect(() => {
     const init = async () => {
       try {
-        setLoading(true);
         const session = await userbase.init({
           appId: process.env.REACT_APP_USERBASE_APP_ID || '',
         });
         setUser(session.user);
-        setLoading(false);
       } catch (error) {
         console.error(error);
       }
@@ -122,12 +121,22 @@ const DBProvider: FC = ({ children }) => {
 
   // Open the database connection
   useEffect(() => {
-    if (user) {
-      userbase.openDatabase({
-        databaseName: DB_NAME,
-        changeHandler: handleChange,
-      });
-    }
+    const open = async () => {
+      if (user) {
+        setLoading(true);
+
+        try {
+          await userbase.openDatabase({
+            databaseName: DB_NAME,
+            changeHandler: handleChange,
+          });
+          setLoading(false);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    };
+    open();
   }, [user]);
 
   return (
