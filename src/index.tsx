@@ -2,10 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import DBProvider from './components/db-provider';
+import { Provider as BumbagProvider } from 'bumbag';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <BumbagProvider>
+      <DBProvider>
+        <App />
+      </DBProvider>
+    </BumbagProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

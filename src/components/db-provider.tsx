@@ -2,9 +2,10 @@ import React, { FC, useEffect, useState } from 'react';
 import userbase, { UserResult, Item } from 'userbase-js';
 
 type DBContext = {
-  signUp: (username: string, password: string) => void;
-  signIn: (username: string, password: string) => void;
-  signOut: () => void;
+  signUp: (username: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  loading: boolean;
   addExpense: (item: Omit<Expense, 'complete'>) => void;
   updateExpense: (itemId: string, item: Partial<Item>) => void;
   deleteExpense: (itemId: string) => void;
@@ -21,9 +22,10 @@ type Expense = {
 const DB_NAME = 'billa';
 
 const defaultValues: DBContext = {
-  signUp: () => {},
-  signIn: () => {},
-  signOut: () => {},
+  signUp: async () => {},
+  signIn: async () => {},
+  signOut: async () => {},
+  loading: true,
   addExpense: () => {},
   updateExpense: () => {},
   deleteExpense: () => {},
@@ -32,6 +34,7 @@ const defaultValues: DBContext = {
 export const DBContext = React.createContext<DBContext>(defaultValues);
 
 const DBProvider: FC = ({ children }) => {
+  const [loading, setLoading] = useState(defaultValues.loading);
   const [user, setUser] = useState<DBContext['user']>();
   const [items, setItems] = useState<Item[]>();
 
@@ -47,7 +50,7 @@ const DBProvider: FC = ({ children }) => {
       });
       setUser(user);
     } catch (error) {
-      console.error(error);
+      throw Error(error);
     }
   };
 
@@ -56,7 +59,7 @@ const DBProvider: FC = ({ children }) => {
       const user = await userbase.signIn({ username, password });
       setUser(user);
     } catch (error) {
-      console.error(error);
+      throw Error(error);
     }
   };
 
@@ -64,7 +67,7 @@ const DBProvider: FC = ({ children }) => {
     try {
       await userbase.signOut();
     } catch (error) {
-      console.error(error);
+      throw Error(error);
     }
   };
 
@@ -104,10 +107,12 @@ const DBProvider: FC = ({ children }) => {
   useEffect(() => {
     const init = async () => {
       try {
+        setLoading(true);
         const session = await userbase.init({
           appId: process.env.REACT_APP_USERBASE_APP_ID || '',
         });
         setUser(session.user);
+        setLoading(false);
       } catch (error) {
         console.error(error);
       }
@@ -133,6 +138,7 @@ const DBProvider: FC = ({ children }) => {
         signUp,
         signIn,
         signOut,
+        loading,
         addExpense,
         updateExpense,
         deleteExpense,
