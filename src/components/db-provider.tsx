@@ -111,7 +111,12 @@ const DBProvider: FC = ({ children }) => {
         const session = await userbase.init({
           appId: process.env.REACT_APP_USERBASE_APP_ID || '',
         });
-        setUser(session.user);
+
+        if (session.user) {
+          setUser(session.user);
+        } else {
+          setLoading(false);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -130,6 +135,7 @@ const DBProvider: FC = ({ children }) => {
             databaseName: DB_NAME,
             changeHandler: handleChange,
           });
+
           setLoading(false);
         } catch (error) {
           console.error(error);
