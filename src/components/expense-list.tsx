@@ -1,18 +1,20 @@
 import {
-  Card,
-  List,
-  Stack,
-  Paragraph,
-  Heading,
   Box,
-  Set,
   Button,
+  Card,
   DropdownMenu,
+  Heading,
+  List,
+  Paragraph,
+  Set,
+  Stack,
+  Tag,
   Text,
 } from 'bumbag';
 import React, { FC } from 'react';
-import { useDB } from '../hooks/use-db';
 import { Item } from 'userbase-js';
+import { useDB } from '../hooks/use-db';
+import ExpenseForm from './expense-form';
 
 const formatAmount = (amount?: number) => {
   return new Intl.NumberFormat('en-AU', {
@@ -22,7 +24,7 @@ const formatAmount = (amount?: number) => {
 };
 
 const ExpenseList: FC = () => {
-  const { items, updateExpense } = useDB();
+  const { items, updateExpense, deleteExpense } = useDB();
   const expenses = items?.filter((item) => item.item.type === 'expense');
 
   const total = expenses?.reduce(
@@ -44,40 +46,54 @@ const ExpenseList: FC = () => {
           </span>{' '}
           {formatAmount(total)}
         </Heading>
-        <Paragraph>Remaining in this pay cycle.</Paragraph>
+        <Paragraph>Outstanding expenses</Paragraph>
       </Box>
-      {expenses?.map((expense) => (
-        <Card
-          key={expense.itemId}
-          use={List.Item}
-          variant='bordered'
-          title={expense.item.name}
-          headerAddon={
+      {expenses?.map((expense) => {
+        const isComplete = expense.item.complete;
+
+        return (
+          <Card
+            key={expense.itemId}
+            use={List.Item}
+            variant='bordered'
+            title={expense.item.name}
+            headerAddon={
+              <Set>
+                <DropdownMenu
+                  menu={
+                    <>
+                      <DropdownMenu.Item
+                        color='primary'
+                        onClick={() => togglePaid(expense)}
+                      >
+                        Mark as {isComplete ? 'Unpaid' : 'Paid'}
+                      </DropdownMenu.Item>
+                      <DropdownMenu.Item
+                        color='danger'
+                        onClick={() => deleteExpense(expense.itemId)}
+                      >
+                        Delete
+                      </DropdownMenu.Item>
+                    </>
+                  }
+                >
+                  <Button iconAfter='chevron-down'>Actions</Button>
+                </DropdownMenu>
+              </Set>
+            }
+          >
             <Set>
-              <DropdownMenu
-                menu={
-                  <>
-                    <DropdownMenu.Item
-                      color='primary'
-                      onClick={() => togglePaid(expense)}
-                    >
-                      Mark as {expense.item.complete ? 'Unpaid' : 'Paid'}
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item color='danger'>Delete</DropdownMenu.Item>
-                  </>
-                }
-              >
-                <Button iconAfter='chevron-down'>Actions</Button>
-              </DropdownMenu>
+              <Tag palette={isComplete ? 'success' : 'warning'}>
+                {isComplete ? 'Paid' : 'Unpaid'}
+              </Tag>
+              <Text use={isComplete ? 'del' : 'span'}>
+                {formatAmount(expense.item.amount)}
+              </Text>
             </Set>
-          }
-        >
-          <Text use={expense.item.complete ? 'del' : 'span'}>
-            {formatAmount(expense.item.amount)}
-          </Text>
-        </Card>
-      ))}
-      <Button palette='primary'>Add expense</Button>
+          </Card>
+        );
+      })}
+      <ExpenseForm />
     </Stack>
   );
 };

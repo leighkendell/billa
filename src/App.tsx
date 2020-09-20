@@ -63,8 +63,8 @@ const App: FC = () => {
                   </>
                 ) : (
                   <>
-                    <Modal.State>
-                      <Dialog.Modal baseId='loginForm'>
+                    <Modal.State animated>
+                      <Dialog.Modal baseId='loginForm' fade expand>
                         <LoginForm />
                       </Dialog.Modal>
                       <Modal.Disclosure use={Button}>Log in</Modal.Disclosure>

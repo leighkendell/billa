@@ -6,7 +6,7 @@ type DBContext = {
   signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
-  addExpense: (item: Omit<Expense, 'complete' | 'type'>) => void;
+  addExpense: (item: Omit<Expense, 'complete' | 'type'>) => Promise<void>;
   updateExpense: (itemId: string, item: Partial<Item>) => void;
   deleteExpense: (itemId: string) => void;
   user?: UserResult;
@@ -27,7 +27,7 @@ const defaultValues: DBContext = {
   signIn: async () => {},
   signOut: async () => {},
   loading: true,
-  addExpense: () => {},
+  addExpense: async () => {},
   updateExpense: () => {},
   deleteExpense: () => {},
 };
