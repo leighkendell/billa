@@ -67,6 +67,7 @@ const DBProvider: FC = ({ children }) => {
   const signOut: DBContext['signOut'] = async () => {
     try {
       await userbase.signOut();
+      setUser(undefined);
     } catch (error) {
       throw Error(error);
     }
