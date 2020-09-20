@@ -1,3 +1,4 @@
+import { lazy } from '@loadable/component';
 import {
   applyTheme,
   Box,
@@ -9,11 +10,12 @@ import {
   Spinner,
   TopNav,
 } from 'bumbag';
-import React, { FC } from 'react';
-import ExpenseList from './components/expense-list';
-import LoginForm from './components/login-form';
+import React, { FC, Suspense } from 'react';
 import { useDB } from './hooks/use-db';
 import { ReactComponent as BillaIcon } from './images/billa.svg';
+
+const ExpenseList = lazy(() => import('./components/expense-list'));
+const LoginForm = lazy(() => import('./components/login-form'));
 
 const Loader = applyTheme(Flex, {
   styles: {
@@ -65,7 +67,9 @@ const App: FC = () => {
                   <>
                     <Modal.State animated>
                       <Dialog.Modal baseId='loginForm' fade expand>
-                        <LoginForm />
+                        <Suspense fallback={<Spinner />}>
+                          <LoginForm />
+                        </Suspense>
                       </Dialog.Modal>
                       <Modal.Disclosure use={Button}>Log in</Modal.Disclosure>
                     </Modal.State>
@@ -84,7 +88,11 @@ const App: FC = () => {
             Welcome to Billa, please log in to access your data.
           </Box>
         )}
-        {user && <ExpenseList />}
+        {user && (
+          <Suspense fallback={<Spinner alignX='center' padding='major-3' />}>
+            <ExpenseList />
+          </Suspense>
+        )}
       </PageWithHeader>
     </>
   );
